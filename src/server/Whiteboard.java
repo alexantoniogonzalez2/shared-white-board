@@ -13,13 +13,10 @@ class Whiteboard extends JPanel {
     Line2D line = null;
     Ellipse2D circle = null;
     Rectangle rectangle = null;
-    TextArea text = null;
 
-    private String action = "line";
-
+    private String action = "";
 
     public Whiteboard(){
-
 
         class MyListener extends MouseInputAdapter {
             public void mousePressed(MouseEvent e) {
@@ -38,18 +35,22 @@ class Whiteboard extends JPanel {
                         rectangle = new Rectangle(x, y, 0, 0);
                         break;
                     case "text":
+                        JTextField text = new JTextField();
+                        text.setBounds(x,y,100,50);
+                        text.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+                        text.setOpaque(false);
+                        add(text);
+                        repaint();
+                        text.requestFocus();
+                        // TODO
+                        //- Listener for lose focus after an enter
+                        //- Listener for limit the characters: https://stackoverflow.com/questions/3519151/how-to-limit-the-number-of-characters-in-jtextfield
+                        break;
                     default:
                         break;
 
                 }
 
-                //System.out.println("Action"+action);
-                //int x = e.getX();
-                //int y = e.getY();
-                //rectangle = new Rectangle(x, y, 0, 0);
-
-                //updateDrawableRect(getWidth(), getHeight());
-                //repaint();
             }
 
             public void mouseDragged(MouseEvent e) {
@@ -75,7 +76,6 @@ class Whiteboard extends JPanel {
                         objects.add(circle);
                         break;
                     case "rectangle":
-                        //rectangle = new Rectangle(x, y, 0, 0);
                         rectangle.setSize(x - rectangle.x, y - rectangle.y);
                         objects.add(rectangle);
                         break;
@@ -85,15 +85,8 @@ class Whiteboard extends JPanel {
                 }
 
                 repaint();
-                //objects.add(currentRect);
 
             }
-
-            void createObject(int x, int y, String action){
-
-
-            }
-
 
         }
 

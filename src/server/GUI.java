@@ -25,11 +25,11 @@ public class GUI extends JFrame {
     public void GUI(){
 
 
-
     }
 
     void initGUI(){
         setTitle("White Board");
+
 
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocation(40,70);
@@ -45,35 +45,19 @@ public class GUI extends JFrame {
 
         this.pack();
 
-        // Event listener for the 'query' feature.
-        class queryActionListener implements ActionListener {
-            // The actions performed include checking that inputs are correct.
-            // A message will be send if everything is correct.
+        class drawActionListener implements ActionListener {
+
             @Override
             public void actionPerformed(ActionEvent e) {
-                //System.out.print(e.getActionCommand());
                 whiteboard.setAction(e.getActionCommand());
-
-                /*String inputText = queryField.getText();
-                String selectedLng = dictionaries.getSelection().getActionCommand();
-                boolean check = inputText.matches(allowed);*/
-
-
-
             }
         }
-        // The listener is added to the corresponding elements.
-        queryActionListener queryListener = new queryActionListener();
-        lineButton.addActionListener(queryListener);
-        circleButton.addActionListener(queryListener);
-        rectangleButton.addActionListener(queryListener);
-        textButton.addActionListener(queryListener);
-
-
-
-
+        drawActionListener drawAction = new drawActionListener();
+        lineButton.addActionListener(drawAction);
+        circleButton.addActionListener(drawAction);
+        rectangleButton.addActionListener(drawAction);
+        textButton.addActionListener(drawAction);
 
     }
-
 
 }
