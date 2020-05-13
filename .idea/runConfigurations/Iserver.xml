@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Iserver" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="server.CreateWhiteboard" />
+    <module name="SharedWhiteboard" />
+    <option name="VM_PARAMETERS" value="-Djava.rmi.server.codebase=file:&quot;$PROJECT_DIR$/../JavaRMIEx&quot; -Djava.security.policy=&quot;$PROJECT_DIR$/../JavaRMIEx/out/production/JavaRMIExlocal.policy&quot;" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
