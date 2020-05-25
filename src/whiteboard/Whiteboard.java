@@ -1,5 +1,8 @@
 package whiteboard;
 
+import remote.IRemoteEdition;
+import remote.RemoteListener;
+
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
@@ -10,14 +13,15 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 
-public abstract class Whiteboard extends JPanel {
-    private ArrayList<Shape> objects = new ArrayList<Shape>();
+public class Whiteboard extends JPanel implements RemoteListener {
+    private ArrayList<Object> objects = new ArrayList<Object>();
     private Line2D line = null;
     private Ellipse2D circle = null;
     private Rectangle rectangle = null;
     private String action = "line";
+    private IRemoteEdition remoteEdition = null;
 
-    public Whiteboard(){
+    public Whiteboard() throws RemoteException {
 
         class MyListener extends MouseInputAdapter {
             public void mousePressed(MouseEvent e) {
@@ -47,7 +51,8 @@ public abstract class Whiteboard extends JPanel {
                         repaint();
                         text.requestFocus();
                         try {
-                            addRemoteText(x, y, "dummy");
+                            text.setText("dummy");
+                            addRemoteText(text);
                         } catch (RemoteException remoteException) {
                             remoteException.printStackTrace();
                         }
@@ -75,9 +80,13 @@ public abstract class Whiteboard extends JPanel {
         addMouseMotionListener(myListener);
     }
 
-    public void init(){
+    public void setRemoteEdition(IRemoteEdition remote){
+        this.remoteEdition = remote;
+    }
+
+    public void loadObjects(){
         try {
-            objects = loadObjects();
+            this.objects = this.remoteEdition.getObjects();
         } catch (RemoteException remoteException) {
             remoteException.printStackTrace();
         }
@@ -97,21 +106,21 @@ public abstract class Whiteboard extends JPanel {
                     y1 = line.getY1();
                     line.setLine(x1, y1, x2, y2);
                     if (mouseAction.equals("released"))
-                        addRemoteLine(x1, y1, x2, y2);
+                        addRemoteShape(line);
                     break;
                 case "circle":
                     x1 = circle.getX();
                     y1 = circle.getY();
                     circle.setFrameFromDiagonal(x1, y1, x2, y2);
                     if (mouseAction.equals("released"))
-                        addRemoteCircle(x1, y1, x2, y2);
+                        addRemoteShape(circle);
                     break;
                 case "rectangle":
                     x1 = rectangle.getX();
                     y1 = rectangle.getY();
                     rectangle.setFrameFromDiagonal(x1, y1, x2, y2);
                     if (mouseAction.equals("released"))
-                        addRemoteRectangle(x1, y1, x2, y2);
+                        addRemoteShape(rectangle);
                     break;
                 default:
                     break;
@@ -121,7 +130,6 @@ public abstract class Whiteboard extends JPanel {
         }
 
         repaint();
-
     }
 
     @Override
@@ -131,59 +139,37 @@ public abstract class Whiteboard extends JPanel {
 
         super.paintComponent(g2d);
         setBackground(Color.white);
-        int i =0;
-        for (Shape item : objects) {
-            //System.out.print("i: "+i);
-            g2d.draw(item);
-            i++;
+
+        for (Object item : objects) {
+            if (item instanceof Shape)
+                g2d.draw((Shape)item);
+            else
+                add((JTextField)item);
         }
     }
 
-    public abstract void addRemoteLine(double x1, double y1, double x2, double y2) throws RemoteException;
-    public abstract void addRemoteCircle(double x1, double y1, double x2, double y2) throws RemoteException;
-    public abstract void addRemoteRectangle(double x1, double y1, double x2, double y2) throws RemoteException;
-    public abstract void addRemoteText(int x1, int y1, String text) throws RemoteException;
-    public abstract ArrayList<Shape> loadObjects() throws RemoteException;
+    @Override
+    public void temperatureChanged(Shape shape) throws RemoteException {
+        //System.out.println("5");
 
-    public void addLine(double x1, double y1, double x2, double y2){
-        objects.add(new Line2D.Double(x1, y1, x2, y2));
+        //System.out.println(shape.toString());
+        //System.out.println(shape);
+
+        objects.add(shape);
         repaint();
+
     }
 
-    public void addCircle(double x1, double y1, double x2, double y2){
-        Ellipse2D newCircle = new Ellipse2D.Double(x1,y1,0,0);
-        newCircle.setFrameFromDiagonal(x1, y1, x2, y2);
-        objects.add(newCircle);
-        repaint();
+    public void addRemoteShape(Shape shape) throws RemoteException {
+        this.remoteEdition.addShape(shape);
     }
 
-    public void addRectangle(double x1, double y1, double x2, double y2){
-        Rectangle newRectangle = new Rectangle((int)x1,(int)y1,0,0);
-        newRectangle.setFrameFromDiagonal(x1, y1, x2, y2);
-        objects.add(newRectangle);
-        repaint();
-    }
-
-    public void addText(int x1, int y1, String string){
-        JTextField text = new JTextField();
-        text.setBounds(x1,y1,100,50);
-        text.setBorder(javax.swing.BorderFactory.createEmptyBorder());
-        text.setOpaque(false);
-        add(text);
-        repaint();
-        text.requestFocus();
+    public void addRemoteText(JTextField text) throws RemoteException {
+        this.remoteEdition.addText(text);
     }
 
     public void setAction(String action){
         this.action = action;
-    }
-
-    public void setObjects(ArrayList<Shape> objects){
-        this.objects = objects;
-    }
-
-    public ArrayList<Shape> getObjects(){
-        return objects;
     }
 
 }

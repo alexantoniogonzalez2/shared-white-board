@@ -1,10 +1,7 @@
 package whiteboard;
 
-import client.ClientWhiteboard;
-import remote.IWhiteboardEdition;
-import server.ServerWhiteboard;
-import server.WhiteboardEdition;
-import whiteboard.Whiteboard;
+import remote.IRemoteEdition;
+import server.RemoteEdition;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,43 +24,22 @@ public class GUI extends JFrame {
     private JPanel whiteboardPanel;
     private JPanel footPanel;
     private Whiteboard whiteboard;
+    private String title;
 
-    public GUI(String title, String type){
-        setTitle(title);
-
-
+    public GUI(String type){
         if (type.equals("client")) {
-            ClientWhiteboard clientWhiteboard = new ClientWhiteboard();
-            clientWhiteboard.init();
-            this.whiteboard = clientWhiteboard;
             this.setLocation(660,70);
+            this.title = "Client";
         }
         else {
             this.setLocation(40,70);
-            this.whiteboard = new ServerWhiteboard();
-            try {
-                IWhiteboardEdition remoteEdition = null;
-
-                remoteEdition = new WhiteboardEdition(); // throws RemoteException
-                remoteEdition.setWhiteboard(this.whiteboard);
-
-                Registry registry = LocateRegistry.getRegistry();
-                registry.bind("WhiteboardEdition", remoteEdition);
-                System.out.println("Remote edition ready");
-
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            } catch (AlreadyBoundException e) {
-                e.printStackTrace();
-            }
-
+            this.title = "Manager";
         }
-
-
+        setTitle(this.title);
     }
 
-
-   public void initGUI(){
+   public void initGUI(Whiteboard whiteboard){
+       this.whiteboard = whiteboard;
 
        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
        this.whiteboardPanel.setLayout(new GridLayout());
@@ -85,18 +61,13 @@ public class GUI extends JFrame {
                whiteboard.setAction(e.getActionCommand());
            }
        }
+
        drawActionListener drawAction = new drawActionListener();
        lineButton.addActionListener(drawAction);
        circleButton.addActionListener(drawAction);
        rectangleButton.addActionListener(drawAction);
        textButton.addActionListener(drawAction);
 
-
-
-
-
-
     }
-
 
 }
