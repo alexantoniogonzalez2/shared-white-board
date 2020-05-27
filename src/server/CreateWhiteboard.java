@@ -1,54 +1,86 @@
 package server;
 
-import remote.IRemoteEdition;
+import client.ImplementUser;
+import remote.Manager;
 import whiteboard.GUI;
+import whiteboard.EditorList;
 import whiteboard.Whiteboard;
 
-import java.rmi.AlreadyBoundException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
+import java.net.MalformedURLException;
+import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 
 public class CreateWhiteboard {
 
     public static void main(String[] args){
 
-        System.out.println("Server running...");
-        GUI serverGUI = new GUI("server");
+        // Reading the port number and the ip
+        String ip = "", username = "";
+        int port = 0;
+
+        try {
+            ip = args[0];
+            port = Integer.parseInt(args[1]);
+            username = args[2];
+        } catch (ArrayIndexOutOfBoundsException e ){
+            //errorMessage("Wrong Number of Parameters");
+            System.exit(1);
+        } catch (NumberFormatException e){
+            //errorMessage("Wrong Input Type for Port Number");
+            System.exit(1);
+        }
+
 
         // Server
         try {
-            IRemoteEdition remoteEdition = new RemoteEdition(); // throws RemoteException
-            Registry registry = LocateRegistry.getRegistry();
-            registry.bind("WhiteboardEdition", remoteEdition);
-            System.out.println("Remote edition ready");
-        } catch (RemoteException e) {
+            Manager remoteManager = new ImplementManager(); // throws RemoteException
+            LocateRegistry.createRegistry(port);
+            String url = "rmi://" + ip + ":" + port + "/sharedWhiteboard";
+            Naming.rebind(url, remoteManager);
+        } catch (RemoteException e) { // ImplRemoteEdition
             e.printStackTrace();
-        } catch (AlreadyBoundException e) {
+        } catch (MalformedURLException e) { //rebind
             e.printStackTrace();
         }
+
 
         // Client
         try {
-            Registry registry = LocateRegistry.getRegistry("localhost");
-            IRemoteEdition clientRemoteEdition = (IRemoteEdition)registry.lookup("WhiteboardEdition");
-            System.out.println("Board ready for edition");
 
+            //Lookup for the service
+            String url = "rmi://" + ip + ":" + port + "/sharedWhiteboard";
+            Remote remoteService = Naming.lookup(url);
+
+            Manager remoteManager = (Manager) remoteService;
+            ImplementUser user = new ImplementUser(username);
             Whiteboard whiteboard = new Whiteboard();
-            clientRemoteEdition.addTemperatureListener(whiteboard);
+            EditorList editorList = new EditorList();
 
-            whiteboard.setRemoteEdition(clientRemoteEdition);
+
+            //Create a temperature monitor and register it as a Listener
+            user.setEditorList(editorList);
+            editorList.setRemoteManager(remoteManager);
+            whiteboard.setRemoteManager(remoteManager);
+
+            remoteManager.addUser(user);
+            user.setWhiteBoard(whiteboard);
+
+
+            GUI userGUI = new GUI("Manager");
             whiteboard.loadObjects();
+            editorList.loadUsers();
+            userGUI.initGUI(whiteboard, editorList);
+            userGUI.setVisible(true);
 
-            serverGUI.initGUI(whiteboard);
-            serverGUI.setVisible(true);
-
-        } catch (RemoteException e) {
+        } catch (RemoteException e) { //Various methods
             e.printStackTrace();
         } catch (NotBoundException e) {
             e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
         }
+
+
 
     }
 }

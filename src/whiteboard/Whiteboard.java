@@ -1,29 +1,56 @@
 package whiteboard;
 
-import remote.IRemoteEdition;
-import remote.RemoteListener;
+import remote.Manager;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 
-public class Whiteboard extends JPanel implements RemoteListener {
-    private ArrayList<Object> objects = new ArrayList<Object>();
+public class Whiteboard extends JPanel {
+    private ArrayList<Object> objects = new ArrayList<>();
     private Line2D line = null;
     private Ellipse2D circle = null;
     private Rectangle rectangle = null;
     private String action = "line";
-    private IRemoteEdition remoteEdition = null;
+    private Manager remoteManager = null;
 
-    public Whiteboard() throws RemoteException {
+    public Whiteboard() {
 
-        class MyListener extends MouseInputAdapter {
+        class TextListener implements FocusListener {
+            // The actions performed include checking that inputs are correct.
+            // A message will be send if everything is correct.
+
+            @Override
+            public void focusGained(FocusEvent e) {}
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                processText((JTextField)e.getSource());
+            }
+        }
+
+        class CustomKeyListener implements KeyListener{
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if(e.getKeyCode() == KeyEvent.VK_ENTER){
+                    processText((JTextField)e.getSource());
+                }
+            }
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+        }
+
+        class MouseListener extends MouseInputAdapter {
             public void mousePressed(MouseEvent e) {
 
                 int x = e.getX();
@@ -44,22 +71,20 @@ public class Whiteboard extends JPanel implements RemoteListener {
                         break;
                     case "text":
                         JTextField text = new JTextField();
-                        text.setBounds(x,y,100,50);
+                        text.setBounds(x,y-20,100,50);
                         text.setBorder(javax.swing.BorderFactory.createEmptyBorder());
                         text.setOpaque(false);
                         add(text);
                         repaint();
                         text.requestFocus();
-                        try {
-                            text.setText("dummy");
-                            addRemoteText(text);
-                        } catch (RemoteException remoteException) {
-                            remoteException.printStackTrace();
-                        }
+
+                        // The listener is added to the corresponding elements.
+                        text.addFocusListener(new TextListener());
+                        text.addKeyListener(new CustomKeyListener());
+
                         // TODO
-                        //- Listener for lose focus after an enter and sent text
+                        // avoid notification of object notified by the same whiteboard
                         //- Listener for limit the characters: https://stackoverflow.com/questions/3519151/how-to-limit-the-number-of-characters-in-jtextfield
-                        //- Insert text: correct Y position
                         break;
                     default:
                         break;
@@ -75,18 +100,22 @@ public class Whiteboard extends JPanel implements RemoteListener {
             }
         }
 
-        MyListener myListener = new MyListener();
-        addMouseListener(myListener);
-        addMouseMotionListener(myListener);
+        MouseListener mouseListener = new MouseListener();
+        addMouseListener(mouseListener);
+        addMouseMotionListener(mouseListener);
+
     }
 
-    public void setRemoteEdition(IRemoteEdition remote){
-        this.remoteEdition = remote;
+    public void setRemoteManager(Manager manager){
+        this.remoteManager = manager;
+    }
+    public void setAction(String action){
+        this.action = action;
     }
 
     public void loadObjects(){
         try {
-            this.objects = this.remoteEdition.getObjects();
+            this.objects = this.remoteManager.getObjects();
         } catch (RemoteException remoteException) {
             remoteException.printStackTrace();
         }
@@ -106,26 +135,26 @@ public class Whiteboard extends JPanel implements RemoteListener {
                     y1 = line.getY1();
                     line.setLine(x1, y1, x2, y2);
                     if (mouseAction.equals("released"))
-                        addRemoteShape(line);
+                        this.remoteManager.addObject(line);
                     break;
                 case "circle":
                     x1 = circle.getX();
                     y1 = circle.getY();
                     circle.setFrameFromDiagonal(x1, y1, x2, y2);
                     if (mouseAction.equals("released"))
-                        addRemoteShape(circle);
+                        this.remoteManager.addObject(circle);
                     break;
                 case "rectangle":
                     x1 = rectangle.getX();
                     y1 = rectangle.getY();
                     rectangle.setFrameFromDiagonal(x1, y1, x2, y2);
                     if (mouseAction.equals("released"))
-                        addRemoteShape(rectangle);
+                        this.remoteManager.addObject(rectangle);
                     break;
                 default:
                     break;
             }
-        } catch (RemoteException remoteException) {
+        } catch (RemoteException exception) {
 
         }
 
@@ -148,28 +177,22 @@ public class Whiteboard extends JPanel implements RemoteListener {
         }
     }
 
-    @Override
-    public void temperatureChanged(Shape shape) throws RemoteException {
-        //System.out.println("5");
+    public void processText(JTextField text){
+        if (!text.getText().equals("")){
+            try {
+                this.remoteManager.addObject(text);
+            } catch (RemoteException exception) {
+                exception.printStackTrace();
+            }
+        }
 
-        //System.out.println(shape.toString());
-        //System.out.println(shape);
+    }
 
-        objects.add(shape);
+
+    // Receive shapes
+    public void newObject(Object object) {
+        objects.add(object);
         repaint();
-
-    }
-
-    public void addRemoteShape(Shape shape) throws RemoteException {
-        this.remoteEdition.addShape(shape);
-    }
-
-    public void addRemoteText(JTextField text) throws RemoteException {
-        this.remoteEdition.addText(text);
-    }
-
-    public void setAction(String action){
-        this.action = action;
     }
 
 }

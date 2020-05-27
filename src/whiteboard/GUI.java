@@ -1,51 +1,55 @@
 package whiteboard;
 
-import remote.IRemoteEdition;
-import server.RemoteEdition;
+import remote.User;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.rmi.AlreadyBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class GUI extends JFrame {
     private JButton lineButton;
     private JButton circleButton;
     private JButton rectangleButton;
     private JButton textButton;
-    private JPanel notificationPanel;
     private JPanel actions;
     private JPanel descriptionPanel;
     private JPanel mainPanel;
     private JPanel whiteboardPanel;
     private JPanel footPanel;
+    private JPanel userListPanel;
     private Whiteboard whiteboard;
+    private EditorList editorList;
+
     private String title;
 
     public GUI(String type){
-        if (type.equals("client")) {
-            this.setLocation(660,70);
-            this.title = "Client";
-        }
-        else {
-            this.setLocation(40,70);
-            this.title = "Manager";
-        }
+        if (type.equals("User"))
+            this.setLocation(680,70);
+        else
+            this.setLocation(10,70);
+
+        this.title = type;
         setTitle(this.title);
     }
 
-   public void initGUI(Whiteboard whiteboard){
+   public void initGUI(Whiteboard whiteboard, EditorList ul){
+
+       this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
        this.whiteboard = whiteboard;
-
-       this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
        this.whiteboardPanel.setLayout(new GridLayout());
+       this.whiteboardPanel.add(this.whiteboard);
 
-       this.whiteboardPanel.add(whiteboard);
+       this.editorList = ul;
+       this.userListPanel.setLayout(new GridLayout());
+       this.userListPanel.add(ul);
+
        this.add(mainPanel);
+       repaint();
+
 
        lineButton.setActionCommand("line");
        circleButton.setActionCommand("circle");
@@ -67,6 +71,7 @@ public class GUI extends JFrame {
        circleButton.addActionListener(drawAction);
        rectangleButton.addActionListener(drawAction);
        textButton.addActionListener(drawAction);
+
 
     }
 
