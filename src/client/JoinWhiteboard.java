@@ -1,11 +1,12 @@
 package client;
 
 
-import remote.Manager;
+import remote.RemoteManager;
 import whiteboard.GUI;
 import whiteboard.EditorList;
 import whiteboard.Whiteboard;
 
+import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.MalformedURLException;
@@ -18,6 +19,7 @@ public class JoinWhiteboard {
         // Reading the port number and the ip
         String ip = "", username = "";
         int port = 0;
+        boolean approval;
 
         try {
             ip = args[0];
@@ -37,13 +39,18 @@ public class JoinWhiteboard {
             String url = "rmi://" + ip + ":" + port + "/sharedWhiteboard";
             Remote remoteService = Naming.lookup(url);
 
-            Manager remoteManager = (Manager) remoteService;
-            ImplementUser user = new ImplementUser(username);
+            RemoteManager remoteManager = (RemoteManager) remoteService;
+            User user = new User(username);
+
+            approval = remoteManager.getApproval(username);
+
+            if (!approval)
+                showMessage("not_approval");
+
             Whiteboard whiteboard = new Whiteboard();
             EditorList editorList = new EditorList();
 
-
-            //Create a temperature monitor and register it as a Listener
+            //
             user.setEditorList(editorList);
             editorList.setRemoteManager(remoteManager);
             whiteboard.setRemoteManager(remoteManager);
@@ -51,12 +58,11 @@ public class JoinWhiteboard {
             remoteManager.addUser(user);
             user.setWhiteBoard(whiteboard);
 
-            GUI userGUI = new GUI("User");
+            GUI userGUI = new GUI("User",username);
             whiteboard.loadObjects();
             editorList.loadUsers();
-            userGUI.initGUI(whiteboard, editorList);
+            userGUI.initGUI(whiteboard, editorList, remoteManager);
             userGUI.setVisible(true);
-
 
             userGUI.addWindowListener(new WindowAdapter() {
                 @Override
@@ -79,6 +85,15 @@ public class JoinWhiteboard {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
+
+    }
+
+    protected static void showMessage (String type) {
+
+        String errorMsg = "Your access was not authorized.";
+
+        JOptionPane.showMessageDialog(new JFrame(),errorMsg ,"Not authorized", JOptionPane.ERROR_MESSAGE);
+        System.exit(1);
 
     }
 }

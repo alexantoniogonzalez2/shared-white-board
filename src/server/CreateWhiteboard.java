@@ -1,11 +1,13 @@
 package server;
 
-import client.ImplementUser;
-import remote.Manager;
+import client.User;
+import remote.RemoteManager;
 import whiteboard.GUI;
 import whiteboard.EditorList;
 import whiteboard.Whiteboard;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.net.MalformedURLException;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
@@ -33,7 +35,7 @@ public class CreateWhiteboard {
 
         // Server
         try {
-            Manager remoteManager = new ImplementManager(); // throws RemoteException
+            RemoteManager remoteManager = new Manager(); // throws RemoteException
             LocateRegistry.createRegistry(port);
             String url = "rmi://" + ip + ":" + port + "/sharedWhiteboard";
             Naming.rebind(url, remoteManager);
@@ -51,8 +53,8 @@ public class CreateWhiteboard {
             String url = "rmi://" + ip + ":" + port + "/sharedWhiteboard";
             Remote remoteService = Naming.lookup(url);
 
-            Manager remoteManager = (Manager) remoteService;
-            ImplementUser user = new ImplementUser(username);
+            RemoteManager remoteManager = (RemoteManager) remoteService;
+            User user = new User(username);
             Whiteboard whiteboard = new Whiteboard();
             EditorList editorList = new EditorList();
 
@@ -65,12 +67,25 @@ public class CreateWhiteboard {
             remoteManager.addUser(user);
             user.setWhiteBoard(whiteboard);
 
-
-            GUI userGUI = new GUI("Manager");
+            GUI userGUI = new GUI("Manager",username);
             whiteboard.loadObjects();
             editorList.loadUsers();
-            userGUI.initGUI(whiteboard, editorList);
+            userGUI.initGUI(whiteboard, editorList, remoteManager);
             userGUI.setVisible(true);
+
+            userGUI.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    try {
+                        remoteManager.closeApplication();
+                    } catch (RemoteException remoteException) {
+                        remoteException.printStackTrace();
+                    }
+                    userGUI.setVisible(false);
+                    userGUI.dispose();
+                    System.exit(1);
+                }
+            });
 
         } catch (RemoteException e) { //Various methods
             e.printStackTrace();

@@ -1,6 +1,6 @@
 package whiteboard;
 
-import remote.Manager;
+import remote.RemoteManager;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
@@ -18,7 +18,8 @@ public class Whiteboard extends JPanel {
     private Ellipse2D circle = null;
     private Rectangle rectangle = null;
     private String action = "line";
-    private Manager remoteManager = null;
+    private RemoteManager remoteManager = null;
+    private boolean enable = true;
 
     public Whiteboard() {
 
@@ -55,48 +56,52 @@ public class Whiteboard extends JPanel {
 
                 int x = e.getX();
                 int y = e.getY();
+                if (enable) {
+                    switch (action) {
+                        case "line":
+                            line = new Line2D.Double(x, y, 0, 0);
+                            objects.add(line);
+                            break;
+                        case "circle":
+                            circle = new Ellipse2D.Double(x, y, 0, 0);
+                            objects.add(circle);
+                            break;
+                        case "rectangle":
+                            rectangle = new Rectangle(x, y, 0, 0);
+                            objects.add(rectangle);
+                            break;
+                        case "text":
+                            JTextField text = new JTextField();
+                            text.setBounds(x, y-20, 100, 50);
+                            text.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+                            text.setOpaque(false);
+                            add(text);
+                            repaint();
+                            text.requestFocus();
 
-                switch(action){
-                    case "line":
-                        line = new Line2D.Double(x, y, 0, 0);
-                        objects.add(line);
-                        break;
-                    case "circle":
-                        circle = new Ellipse2D.Double(x, y, 0, 0);
-                        objects.add(circle);
-                        break;
-                    case "rectangle":
-                        rectangle = new Rectangle(x, y, 0, 0);
-                        objects.add(rectangle);
-                        break;
-                    case "text":
-                        JTextField text = new JTextField();
-                        text.setBounds(x,y-20,100,50);
-                        text.setBorder(javax.swing.BorderFactory.createEmptyBorder());
-                        text.setOpaque(false);
-                        add(text);
-                        repaint();
-                        text.requestFocus();
+                            // The listener is added to the corresponding elements.
+                            text.addFocusListener(new TextListener());
+                            text.addKeyListener(new CustomKeyListener());
 
-                        // The listener is added to the corresponding elements.
-                        text.addFocusListener(new TextListener());
-                        text.addKeyListener(new CustomKeyListener());
-
-                        // TODO
-                        // avoid notification of object notified by the same whiteboard
-                        //- Listener for limit the characters: https://stackoverflow.com/questions/3519151/how-to-limit-the-number-of-characters-in-jtextfield
-                        break;
-                    default:
-                        break;
+                            // TODO
+                            // Message if was allowed (1 second)
+                            // Message waiting
+                            //- Listener for limit the characters: https://stackoverflow.com/questions/3519151/how-to-limit-the-number-of-characters-in-jtextfield
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
 
             public void mouseDragged(MouseEvent e) {
-                updateSize(e,"dragged");
+                if (enable)
+                    updateSize(e,"dragged");
             }
 
             public void mouseReleased(MouseEvent e) {
-                updateSize(e,"released");
+                if (enable)
+                    updateSize(e,"released");
             }
         }
 
@@ -106,8 +111,8 @@ public class Whiteboard extends JPanel {
 
     }
 
-    public void setRemoteManager(Manager manager){
-        this.remoteManager = manager;
+    public void setRemoteManager(RemoteManager remoteManager){
+        this.remoteManager = remoteManager;
     }
     public void setAction(String action){
         this.action = action;
@@ -119,6 +124,7 @@ public class Whiteboard extends JPanel {
         } catch (RemoteException remoteException) {
             remoteException.printStackTrace();
         }
+        repaint();
     }
 
     public void updateSize(MouseEvent e, String mouseAction) {
@@ -128,7 +134,6 @@ public class Whiteboard extends JPanel {
         double x1, y1;
 
         try {
-
             switch (action) {
                 case "line":
                     x1 = line.getX1();
@@ -155,7 +160,7 @@ public class Whiteboard extends JPanel {
                     break;
             }
         } catch (RemoteException exception) {
-
+            exception.printStackTrace();
         }
 
         repaint();
@@ -167,13 +172,16 @@ public class Whiteboard extends JPanel {
         Graphics2D g2d = (Graphics2D) g.create();
 
         super.paintComponent(g2d);
-        setBackground(Color.white);
+        //setBackground(Color.white);
 
         for (Object item : objects) {
             if (item instanceof Shape)
                 g2d.draw((Shape)item);
-            else
-                add((JTextField)item);
+            else{
+                JTextField text = new JTextField();
+                text = ((JTextField)item);
+                g2d.drawString(text.getText(),text.getX(),text.getY()+30);
+            }
         }
     }
 
@@ -181,6 +189,7 @@ public class Whiteboard extends JPanel {
         if (!text.getText().equals("")){
             try {
                 this.remoteManager.addObject(text);
+                this.remove(text);
             } catch (RemoteException exception) {
                 exception.printStackTrace();
             }
@@ -188,11 +197,21 @@ public class Whiteboard extends JPanel {
 
     }
 
-
     // Receive shapes
     public void newObject(Object object) {
         objects.add(object);
         repaint();
     }
 
+    public void setEnable(boolean enable) {
+        if (enable){
+            setBackground(Color.white);
+            this.enable = true;
+        }
+        else {
+            setBackground(Color.lightGray);
+            this.enable = false;
+        }
+        repaint();
+    }
 }
