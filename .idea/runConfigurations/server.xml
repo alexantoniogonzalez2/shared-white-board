@@ -2,7 +2,7 @@
   <configuration default="false" name="server" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="server.CreateWhiteboard" />
     <module name="SharedWhiteboard" />
-    <option name="PROGRAM_PARAMETERS" value="localhost 50000 Alex" />
+    <option name="PROGRAM_PARAMETERS" value="127.0.0.1 50000 Alex" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

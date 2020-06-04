@@ -1,11 +1,13 @@
+// Author: Alex Gonzalez Login ID: aagonzalez
+// Purpose: Assignment 2 - COMP90015: Distributed Systems
+
 package client;
-
+// Classes and interfaces
 import remote.RemoteUser;
-import whiteboard.EditorList;
+import whiteboard.ListEditor;
 import whiteboard.Whiteboard;
-
+// Libraries
 import javax.swing.*;
-import java.awt.*;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -14,7 +16,7 @@ public class User extends UnicastRemoteObject implements RemoteUser {
     private int id;
     private String username;
     private Whiteboard whiteboard;
-    private EditorList editorList;
+    private ListEditor listEditor;
 
     public User(String username) throws RemoteException {
         this.username = username;
@@ -32,15 +34,15 @@ public class User extends UnicastRemoteObject implements RemoteUser {
 
     @Override
     public void reloadUser() {
-        this.editorList.loadUsers();
+        this.listEditor.loadUsers();
     }
 
     public void setWhiteBoard(Whiteboard whiteboard) {
         this.whiteboard = whiteboard;
     }
 
-    public void setEditorList(EditorList editorList) {
-        this.editorList = editorList;
+    public void setListEditor(ListEditor listEditor) {
+        this.listEditor = listEditor;
     }
 
     @Override
@@ -54,9 +56,10 @@ public class User extends UnicastRemoteObject implements RemoteUser {
     }
 
     @Override
-    public void notifyKickOff() {
+    public void notifyKickOut() {
 
         String errorMsg = "The manager has kicked you out of the whiteboard.";
+        // This thread is needed to not blocking the manager.
         Thread t = new Thread(new Runnable(){
             public void run(){
                 JOptionPane.showMessageDialog(new JFrame(),errorMsg ,"Kicked out", JOptionPane.INFORMATION_MESSAGE);
@@ -70,6 +73,7 @@ public class User extends UnicastRemoteObject implements RemoteUser {
     @Override
     public void notifyCloseApplication()  {
         String errorMsg = "The manager has closed the whiteboard.";
+        // This thread is needed to not blocking the manager.
         Thread t = new Thread(new Runnable(){
             public void run(){
                 JOptionPane.showMessageDialog(new JFrame(),errorMsg ,"Whiteboard closed", JOptionPane.INFORMATION_MESSAGE);

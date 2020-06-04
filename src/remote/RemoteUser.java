@@ -1,6 +1,8 @@
-package remote;
+// Author: Alex Gonzalez Login ID: aagonzalez
+// Purpose: Assignment 2 - COMP90015: Distributed Systems
 
-import java.awt.*;
+package remote;
+// Libraries
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -15,7 +17,7 @@ public interface RemoteUser extends Remote {
 
     String getUsername() throws RemoteException;
 
-    void notifyKickOff() throws RemoteException;
+    void notifyKickOut() throws RemoteException;
 
     void notifyCloseApplication() throws RemoteException;
 

@@ -1,5 +1,8 @@
-package remote;
+// Author: Alex Gonzalez Login ID: aagonzalez
+// Purpose: Assignment 2 - COMP90015: Distributed Systems
 
+package remote;
+// Libraries
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;

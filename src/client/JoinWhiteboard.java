@@ -1,11 +1,13 @@
+// Author: Alex Gonzalez Login ID: aagonzalez
+// Purpose: Assignment 2 - COMP90015: Distributed Systems
+
 package client;
-
-
+// Classes and interfaces
 import remote.RemoteManager;
 import whiteboard.GUI;
-import whiteboard.EditorList;
+import whiteboard.ListEditor;
 import whiteboard.Whiteboard;
-
+// Libraries
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -26,11 +28,9 @@ public class JoinWhiteboard {
             port = Integer.parseInt(args[1]);
             username = args[2];
         } catch (ArrayIndexOutOfBoundsException e ){
-            //errorMessage("Wrong Number of Parameters");
-            System.exit(1);
+            showMessage("wrong_number_parameters");
         } catch (NumberFormatException e){
-            //errorMessage("Wrong Input Type for Port Number");
-            System.exit(1);
+            showMessage("wrong_type_number");
         }
 
         try {
@@ -39,31 +39,36 @@ public class JoinWhiteboard {
             String url = "rmi://" + ip + ":" + port + "/sharedWhiteboard";
             Remote remoteService = Naming.lookup(url);
 
+            // It is created: a Remote Manager and a User.
             RemoteManager remoteManager = (RemoteManager) remoteService;
             User user = new User(username);
 
+            // Requesting manager approval
             approval = remoteManager.getApproval(username);
-
             if (!approval)
                 showMessage("not_approval");
 
+            // It is created: a Whiteboard and a List Editor.
             Whiteboard whiteboard = new Whiteboard();
-            EditorList editorList = new EditorList();
+            ListEditor listEditor = new ListEditor();
 
-            //
-            user.setEditorList(editorList);
-            editorList.setRemoteManager(remoteManager);
+            // The remote manager is passed to the whiteboard to receive method calls.
+            user.setListEditor(listEditor);
+            listEditor.setRemoteManager(remoteManager);
             whiteboard.setRemoteManager(remoteManager);
 
+            // The Remote Manager receives an User for notifications.
             remoteManager.addUser(user);
             user.setWhiteBoard(whiteboard);
 
+            // GUI launch
             GUI userGUI = new GUI("User",username);
             whiteboard.loadObjects();
-            editorList.loadUsers();
-            userGUI.initGUI(whiteboard, editorList, remoteManager);
+            listEditor.loadUsers();
+            userGUI.initGUI(whiteboard, listEditor, remoteManager);
             userGUI.setVisible(true);
 
+            // Listener used when the client closes the connection. It sent a notification to Remote Manager.
             userGUI.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
@@ -79,20 +84,40 @@ public class JoinWhiteboard {
             });
 
         } catch (RemoteException e) { //various methods
-            e.printStackTrace();
+            showMessage("not_connection");
         } catch (NotBoundException e) { //lookup
-            e.printStackTrace();
+            showMessage("not_connection");
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            showMessage("not_connection");
         }
 
     }
 
+    // Message dialogs to communicate errors.
     protected static void showMessage (String type) {
 
-        String errorMsg = "Your access was not authorized.";
+        String errorMsg = "";
 
-        JOptionPane.showMessageDialog(new JFrame(),errorMsg ,"Not authorized", JOptionPane.ERROR_MESSAGE);
+        switch (type) {
+            case "wrong_number_parameters":
+                errorMsg = "It was expected at least three arguments: host, port number (integer) " +
+                        "and username.";
+                break;
+            case "wrong_type_number":
+                errorMsg = "It was expected an integer number for the port argument.";
+                break;
+            case "not_approval":
+                errorMsg = "Your access was not authorized.";
+                break;
+            case "not_connection":
+                errorMsg = "It was not possible to connect to a remote server with the parameters provided.";
+                break;
+            default:
+                System.out.println("No tracked error.");
+
+        }
+
+        JOptionPane.showMessageDialog(new JFrame(),errorMsg ,"Error", JOptionPane.ERROR_MESSAGE);
         System.exit(1);
 
     }

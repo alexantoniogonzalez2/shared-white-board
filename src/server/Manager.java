@@ -1,13 +1,14 @@
+// Author: Alex Gonzalez Login ID: aagonzalez
+// Purpose: Assignment 2 - COMP90015: Distributed Systems
+
 package server;
-
-
+// Classes and interfaces
+import remote.RemoteManager;
+import remote.RemoteUser;
+// Libraries
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
-
-import remote.RemoteManager;
-import remote.RemoteUser;
-
 import javax.swing.*;
 
 public class Manager extends UnicastRemoteObject implements RemoteManager {
@@ -16,8 +17,7 @@ public class Manager extends UnicastRemoteObject implements RemoteManager {
     private ArrayList<RemoteUser> remoteUsers = new ArrayList<>();
     private int idCount = 0;
 
-    public Manager() throws RemoteException {
-    }
+    public Manager() throws RemoteException { }
 
     @Override
     public ArrayList<Object> getObjects(){
@@ -47,7 +47,6 @@ public class Manager extends UnicastRemoteObject implements RemoteManager {
     @Override
     public void addUser(RemoteUser remoteUser) {
         this.idCount++;
-
         try {
             remoteUser.setId(idCount);
         } catch (RemoteException remoteException) {
@@ -100,7 +99,7 @@ public class Manager extends UnicastRemoteObject implements RemoteManager {
                 if (remoteUser.getId() == userId){
                     found = true;
                     removeUser(remoteUser);
-                    remoteUser.notifyKickOff();
+                    remoteUser.notifyKickOut();
                 }
             } catch (RemoteException exception) {
                 exception.printStackTrace();

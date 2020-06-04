@@ -1,9 +1,12 @@
+// Author: Alex Gonzalez Login ID: aagonzalez
+// Purpose: Assignment 2 - COMP90015: Distributed Systems
+
 package whiteboard;
 
 import java.io.*;
 import java.util.ArrayList;
 
-public class FileManage {
+public class FileManager {
     private String filePath = null;
     private String fileName = null;
 
@@ -17,7 +20,6 @@ public class FileManage {
         this.fileName = fileName.replace(".txt","") + ".txt";
         try {
             //Write Objects array to file.
-
             FileOutputStream fos = new FileOutputStream(filePath + "/"+  this.fileName);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(objects);

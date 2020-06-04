@@ -1,7 +1,10 @@
+// Author: Alex Gonzalez Login ID: aagonzalez
+// Purpose: Assignment 2 - COMP90015: Distributed Systems
+
 package whiteboard;
-
+// Classes and interfaces
 import remote.RemoteManager;
-
+// Libraries
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
@@ -10,7 +13,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-
 
 public class Whiteboard extends JPanel {
     private ArrayList<Object> objects = new ArrayList<>();
@@ -24,12 +26,8 @@ public class Whiteboard extends JPanel {
     public Whiteboard() {
 
         class TextListener implements FocusListener {
-            // The actions performed include checking that inputs are correct.
-            // A message will be send if everything is correct.
-
             @Override
             public void focusGained(FocusEvent e) {}
-
             @Override
             public void focusLost(FocusEvent e) {
                 processText((JTextField)e.getSource());
@@ -83,10 +81,6 @@ public class Whiteboard extends JPanel {
                             text.addFocusListener(new TextListener());
                             text.addKeyListener(new CustomKeyListener());
 
-                            // TODO
-                            // Message if was allowed (1 second)
-                            // Message waiting
-                            //- Listener for limit the characters: https://stackoverflow.com/questions/3519151/how-to-limit-the-number-of-characters-in-jtextfield
                             break;
                         default:
                             break;
@@ -172,14 +166,12 @@ public class Whiteboard extends JPanel {
         Graphics2D g2d = (Graphics2D) g.create();
 
         super.paintComponent(g2d);
-        //setBackground(Color.white);
 
         for (Object item : objects) {
             if (item instanceof Shape)
                 g2d.draw((Shape)item);
             else{
-                JTextField text = new JTextField();
-                text = ((JTextField)item);
+                JTextField text = ((JTextField)item);
                 g2d.drawString(text.getText(),text.getX(),text.getY()+30);
             }
         }

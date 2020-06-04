@@ -1,3 +1,6 @@
+// Author: Alex Gonzalez Login ID: aagonzalez
+// Purpose: Assignment 2 - COMP90015: Distributed Systems
+
 package whiteboard;
 
 import remote.RemoteManager;
@@ -31,17 +34,17 @@ public class GUI extends JFrame {
     private JButton saveButton;
     private JButton openButton;
     private JButton newButton;
-    private JLabel FileLabel;
+    private JLabel fileLabel;
     private Whiteboard whiteboard;
-    private EditorList editorList;
+    private ListEditor listEditor;
     private String type;
     private String title;
     private RemoteManager remoteManager;
-    private FileManage fileManage;
-    private boolean open = true;
+    private FileManager fileManager;
 
     public GUI(String type, String username){
-        this.fileManage = new FileManage();
+
+        this.fileManager = new FileManager();
         this.type = type;
         if (type.equals("User"))
             this.setLocation(680,70);
@@ -52,7 +55,7 @@ public class GUI extends JFrame {
         setTitle(this.title);
     }
 
-   public void initGUI(Whiteboard whiteboard, EditorList editorList, RemoteManager remoteManager){
+   public void initGUI(Whiteboard whiteboard, ListEditor listEditor, RemoteManager remoteManager){
 
        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
@@ -60,9 +63,9 @@ public class GUI extends JFrame {
        this.whiteboardPanel.setLayout(new GridLayout());
        this.whiteboardPanel.add(this.whiteboard);
 
-       this.editorList = editorList;
+       this.listEditor = listEditor;
        this.userListPanel.setLayout(new GridLayout());
-       this.userListPanel.add(editorList);
+       this.userListPanel.add(listEditor);
 
        this.remoteManager = remoteManager;
        try {
@@ -74,6 +77,7 @@ public class GUI extends JFrame {
        if (type.equals("User")) {
            this.footPanel.remove(kickOutPanel);
            this.headerPanel.remove(filePanel);
+           this.headerPanel.remove(fileLabel);
        }
 
        this.add(mainPanel);
@@ -89,7 +93,7 @@ public class GUI extends JFrame {
        class drawActionListener implements ActionListener {
            @Override
            public void actionPerformed(ActionEvent e) {
-               if (open)
+               //if (open)
                    whiteboard.setAction(e.getActionCommand());
            }
        }
@@ -143,8 +147,8 @@ public class GUI extends JFrame {
         } catch (RemoteException remoteException) {
             remoteException.printStackTrace();
         }
-        this.open = true;
-        this.FileLabel.setText("File: New Whiteboard");
+        //this.open = true;
+        this.fileLabel.setText("File: New Whiteboard");
 
     }
 
@@ -155,20 +159,20 @@ public class GUI extends JFrame {
             File file = fileChooser.getSelectedFile();
             try {
                 this.remoteManager.setEnable(true);
-                this.remoteManager.setObjects(this.fileManage.open(file.getParent(),file.getName()));
+                this.remoteManager.setObjects(this.fileManager.open(file.getParent(),file.getName()));
             } catch (RemoteException remoteException) {
                 remoteException.printStackTrace();
             }
         }
-        if (this.fileManage.getFileName() != null)
-            this.FileLabel.setText("File: " + this.fileManage.getFileName());
+        if (this.fileManager.getFileName() != null)
+            this.fileLabel.setText("File: " + this.fileManager.getFileName());
 
     }
 
     private void saveWhiteboard() {
         try {
-            if (this.fileManage.hasFilePath())
-                this.fileManage.save(this.remoteManager.getObjects());
+            if (this.fileManager.hasFilePath())
+                this.fileManager.save(this.remoteManager.getObjects());
             else
                 saveAsWhiteboard();
         } catch (RemoteException remoteException) {
@@ -181,20 +185,20 @@ public class GUI extends JFrame {
         if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             try {
-                this.fileManage.saveAs(this.remoteManager.getObjects(),file.getParent(),file.getName());
+                this.fileManager.saveAs(this.remoteManager.getObjects(),file.getParent(),file.getName());
             } catch (RemoteException remoteException) {
                 remoteException.printStackTrace();
             }
         }
-        if (this.fileManage.getFileName() != null)
-            this.FileLabel.setText("File: " + this.fileManage.getFileName());
+        if (this.fileManager.getFileName() != null)
+            this.fileLabel.setText("File: " + this.fileManager.getFileName());
 
     }
 
     private void closeWhiteboard() {
-        this.fileManage.deleteFilePath();
+        this.fileManager.deleteFilePath();
 
-        this.FileLabel.setText("File:");
+        this.fileLabel.setText("File:");
         try {
             this.remoteManager.setObjects(new ArrayList<>());
         } catch (RemoteException remoteException) {
@@ -205,10 +209,10 @@ public class GUI extends JFrame {
         } catch (RemoteException remoteException) {
             remoteException.printStackTrace();
         }
-        this.open = false;
+        //this.open = false;
     }
 
-    // Method used for show error information to the user.
+    // Method used for showing error information to the manager.
     protected static void errorMessage (String type) {
         String errorMsg = "";
         switch (type) {

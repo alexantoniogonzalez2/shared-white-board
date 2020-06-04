@@ -1,3 +1,6 @@
+// Author: Alex Gonzalez Login ID: aagonzalez
+// Purpose: Assignment 2 - COMP90015: Distributed Systems
+
 package whiteboard;
 
 import remote.RemoteManager;
@@ -7,13 +10,13 @@ import javax.swing.*;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
-public class EditorList extends JPanel {
+public class ListEditor extends JPanel {
 
     private ArrayList<RemoteUser> remoteUsers = new ArrayList<>();
     private RemoteManager remoteManager = null;
-    JTextArea textArea = new JTextArea();
+    private JTextArea textArea = new JTextArea();
 
-    public EditorList(){
+    public ListEditor(){
         textArea.setEditable(false);
         textArea.setLineWrap(true);
         textArea.setOpaque(false);
